@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Stands in front of adb while an agent explores. It notes each input command
+# (tap, swipe, key, text) in $ECR_ACTION_LOG, then runs the real adb unchanged.
+# The agent's tools and brief stay the same: scripts/ecr_trace.py reads the notes later.
+# Noting must never break a command: any failure to write is ignored.
+if [ -n "${ECR_ACTION_LOG:-}" ] && [ -z "${ECR_SHIM_QUIET:-}" ] && [ "${1:-}" = shell ]; then
+  case "${2:-}" in input*)
+    { printf '%s\tadb' "$(date +%s)"; printf '\t%s' "$@"; printf '\n'; } >> "$ECR_ACTION_LOG" 2>/dev/null || true ;;
+  esac
+fi
+exec "${ECR_REAL_ADB:?ECR_REAL_ADB must point to the real adb}" "$@"
